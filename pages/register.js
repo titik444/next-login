@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -12,6 +13,9 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [secret, setSecret] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState([]);
+  const [submit, setSubmit] = useState(false);
 
   const router = useRouter();
 
@@ -19,6 +23,7 @@ const Register = () => {
     e.preventDefault();
 
     try {
+      setLoading(true);
       const { data } = await axios.post(`/register`, {
         name,
         phone,
@@ -28,14 +33,20 @@ const Register = () => {
         secret,
       });
 
+      setSubmit(true);
+
       if (!data.success) {
-        alert(data.message);
+        toast.error(data.message);
+        setErrors(data.data);
+        setLoading(false);
       } else {
-        alert(data.message);
+        setErrors([]);
+        toast.success(data.message);
         router.push("/login");
       }
     } catch ({ response }) {
       console.log(response);
+      setLoading(false);
     }
   };
 
@@ -62,52 +73,83 @@ const Register = () => {
                   <div className="form-floating mb-2">
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${
+                        errors.name ? "is-invalid" : submit ? "is-valid" : ""
+                      }`}
                       id="floatingName"
                       placeholder="Name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                     />
                     <label htmlFor="floatingName">Name</label>
+                    {errors.name && (
+                      <div className="invalid-feedback">{errors.name}</div>
+                    )}
                   </div>
+
                   <div className="form-floating mb-2">
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${
+                        errors.phone ? "is-invalid" : submit ? "is-valid" : ""
+                      }`}
                       id="floatingPhoneNumber"
                       placeholder="Phone Number"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                     />
                     <label htmlFor="floatingPhoneNumber">Phone Number</label>
+                    {errors.phone && (
+                      <div className="invalid-feedback">{errors.phone}</div>
+                    )}
                   </div>
                   <div className="form-floating mb-2">
                     <input
                       type="email"
-                      className="form-control"
+                      className={`form-control ${
+                        errors.email ? "is-invalid" : submit ? "is-valid" : ""
+                      }`}
                       id="floatingInput"
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
                     <label htmlFor="floatingInput">Email address</label>
+                    {errors.email && (
+                      <div className="invalid-feedback">{errors.email}</div>
+                    )}
                   </div>
 
                   <div className="form-floating mb-2">
                     <input
                       type="password"
-                      className="form-control"
+                      className={`form-control ${
+                        errors.password
+                          ? "is-invalid"
+                          : submit
+                          ? "is-valid"
+                          : ""
+                      }`}
                       id="floatingPassword"
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     <label htmlFor="floatingPassword">Password</label>
+                    {errors.password && (
+                      <div className="invalid-feedback">{errors.password}</div>
+                    )}
                   </div>
                   <div className="form-floating mb-2">
                     <input
                       type="password"
-                      className="form-control"
+                      className={`form-control ${
+                        errors.c_password
+                          ? "is-invalid"
+                          : submit
+                          ? "is-valid"
+                          : ""
+                      }`}
                       id="floatingConfirmPassword"
                       placeholder="Confirm Password"
                       value={confirmPassword}
@@ -116,6 +158,11 @@ const Register = () => {
                     <label htmlFor="floatingConfirmPassword">
                       Confirm Password
                     </label>
+                    {errors.c_password && (
+                      <div className="invalid-feedback">
+                        {errors.c_password}
+                      </div>
+                    )}
                   </div>
                   <div className="form-floating mb-2">
                     <input
@@ -133,7 +180,9 @@ const Register = () => {
                   <div className="form-floating mb-3">
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${
+                        errors.secret ? "is-invalid" : submit ? "is-valid" : ""
+                      }`}
                       id="floatingAnswer"
                       placeholder="Answer"
                       value={secret}
@@ -142,6 +191,9 @@ const Register = () => {
                     <label htmlFor="floatingAnswer">
                       Write your answer here
                     </label>
+                    {errors.secret && (
+                      <div className="invalid-feedback">{errors.secret}</div>
+                    )}
                   </div>
                   {/* <br>
                       <br> */}
@@ -157,10 +209,22 @@ const Register = () => {
                     </div>
                     <div className="col-lg">
                       <button
+                        disabled={loading}
                         className="btn btn-purple acc-btn-login align-middle"
                         type="submit"
                       >
-                        Signup
+                        {loading ? (
+                          <>
+                            <span
+                              className="spinner-border spinner-border-sm"
+                              role="status"
+                              aria-hidden="true"
+                            />{" "}
+                            Signup
+                          </>
+                        ) : (
+                          "Signup"
+                        )}
                       </button>
                     </div>
                   </div>

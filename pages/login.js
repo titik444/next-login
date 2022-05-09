@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { UserContext } from "../context";
 
 // axios.defaults.withCredentials = true;
 axios.defaults.baseURL = process.env.NEXT_PUBLIC_API;
@@ -9,6 +11,8 @@ axios.defaults.baseURL = process.env.NEXT_PUBLIC_API;
 const Login = () => {
   const [username, setUsername] = useState("test@test.com");
   const [password, setPassword] = useState("123456");
+  const [loading, setLoading] = useState(false);
+  const [state, setState] = useContext(UserContext);
 
   const router = useRouter();
 
@@ -16,6 +20,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
+      setLoading(true);
       // /sanctum/csrf-cookie
       // await axios.get(`/sanctum/csrf-cookie`);
 
@@ -25,8 +30,15 @@ const Login = () => {
       });
 
       if (!data.success) {
-        alert("Username atau Password Salah!");
+        toast.error(data.message);
+        setLoading(false);
       } else {
+        // update context
+        setState({
+          name: data.data.name,
+          token: data.data.token,
+        });
+
         // save in local storage
         window.localStorage.setItem("auth", JSON.stringify(data.data));
 
@@ -34,6 +46,7 @@ const Login = () => {
       }
     } catch ({ response }) {
       console.log(response);
+      setLoading(false);
     }
   };
   return (
@@ -54,6 +67,7 @@ const Login = () => {
             <div className="col-lg acc-form">
               <div className="container" id="acc-container">
                 <h2 className="acc-title">Login your account</h2>
+                <br />
 
                 <form onSubmit={handleSubmit}>
                   <h5 className="acc-label">Email / Phone Number</h5>
@@ -90,10 +104,22 @@ const Login = () => {
                   </div>
 
                   <button
+                    disabled={loading}
                     className="btn btn-purple acc-btn-login"
                     type="submit"
                   >
-                    Login
+                    {loading ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        />{" "}
+                        Login
+                      </>
+                    ) : (
+                      "Login"
+                    )}
                   </button>
 
                   <p>

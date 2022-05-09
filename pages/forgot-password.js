@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
+import FeatherIcon from "feather-icons-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -9,6 +11,9 @@ const ForgotPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [secret, setSecret] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState([]);
+  const [submit, setSubmit] = useState(false);
 
   const router = useRouter();
 
@@ -16,6 +21,7 @@ const ForgotPassword = () => {
     e.preventDefault();
 
     try {
+      setLoading(true);
       const { data } = await axios.post(`/forgot-password`, {
         phone,
         email,
@@ -24,14 +30,19 @@ const ForgotPassword = () => {
         secret,
       });
 
+      setSubmit(true);
+
       if (!data.success) {
-        alert(data.message);
+        toast.error(data.message);
+        setErrors(data.data);
+        setLoading(false);
       } else {
-        alert(data.message);
+        toast.success(data.message);
         router.push("/login");
       }
     } catch ({ response }) {
       console.log(response);
+      setLoading(false);
     }
   };
 
@@ -40,7 +51,7 @@ const ForgotPassword = () => {
       <div id="acc" className="for-pass">
         <div className="row">
           <div className="col-lg acc-bg" style={{ background: "unset" }}>
-            <img className="acc-img-2" src="assets/vector/5796109.svg" alt />
+            <img className="acc-img-2" src="assets/vector/5796109.svg" />
           </div>
           <div className="col-lg acc-form">
             <div className="container" id="acc-container">
@@ -50,40 +61,61 @@ const ForgotPassword = () => {
                 <div className="form-floating mb-3">
                   <input
                     type="text"
-                    className="form-control"
+                    className={`form-control ${
+                      errors.phone ? "is-invalid" : submit ? "is-valid" : ""
+                    }`}
                     id="floatingPhoneNumber"
                     placeholder="Phone Number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
                   <label htmlFor="floatingPhoneNumber">Phone Number</label>
+                  {errors.phone && (
+                    <div className="invalid-feedback">{errors.phone}</div>
+                  )}
                 </div>
                 <div className="form-floating mb-3">
                   <input
                     type="email"
-                    className="form-control"
+                    className={`form-control ${
+                      errors.email ? "is-invalid" : submit ? "is-valid" : ""
+                    }`}
                     id="floatingInput"
                     placeholder="name@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                   <label htmlFor="floatingInput">Email address</label>
+                  {errors.email && (
+                    <div className="invalid-feedback">{errors.email}</div>
+                  )}
                 </div>
                 <div className="form-floating mb-3">
                   <input
                     type="password"
-                    className="form-control"
+                    className={`form-control ${
+                      errors.password ? "is-invalid" : submit ? "is-valid" : ""
+                    }`}
                     id="floatingNewPassword"
                     placeholder="Password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                   />
                   <label htmlFor="floatingNewPassword">New Password</label>
+                  {errors.password && (
+                    <div className="invalid-feedback">{errors.password}</div>
+                  )}
                 </div>
                 <div className="form-floating mb-3">
                   <input
                     type="password"
-                    className="form-control"
+                    className={`form-control ${
+                      errors.c_password
+                        ? "is-invalid"
+                        : submit
+                        ? "is-valid"
+                        : ""
+                    }`}
                     id="floatingConfirmPassword"
                     placeholder="Password"
                     value={confirmPassword}
@@ -92,6 +124,9 @@ const ForgotPassword = () => {
                   <label htmlFor="floatingConfirmPassword">
                     Confirm Password
                   </label>
+                  {errors.c_password && (
+                    <div className="invalid-feedback">{errors.c_password}</div>
+                  )}
                 </div>
                 <div className="form-floating mb-3">
                   <input
@@ -109,13 +144,18 @@ const ForgotPassword = () => {
                 <div className="form-floating mb-3">
                   <input
                     type="text"
-                    className="form-control"
+                    className={`form-control ${
+                      errors.secret ? "is-invalid" : submit ? "is-valid" : ""
+                    }`}
                     id="floatingAnswer"
                     placeholder="Answer"
                     value={secret}
                     onChange={(e) => setSecret(e.target.value)}
                   />
                   <label htmlFor="floatingAnswer">Write your answer here</label>
+                  {errors.secret && (
+                    <div className="invalid-feedback">{errors.secret}</div>
+                  )}
                 </div>
                 <br />
                 <br />
@@ -124,18 +164,30 @@ const ForgotPassword = () => {
                     <p style={{ marginTop: "1vh" }}>
                       <Link href="/login">
                         <a className="acc-link align-middle">
-                          <i data-feather="arrow-left" /> Back to login
+                          <FeatherIcon icon="arrow-left" /> Back to login
                         </a>
                       </Link>
                     </p>
                   </div>
                   <div className="col-lg">
                     <button
+                      disabled={loading}
                       style={{ marginTop: ".25vh" }}
                       className="btn btn-purple acc-btn-login align-middle"
                       type="submit"
                     >
-                      Reset Password
+                      {loading ? (
+                        <>
+                          <span
+                            className="spinner-border spinner-border-sm"
+                            role="status"
+                            aria-hidden="true"
+                          />{" "}
+                          Reset Password
+                        </>
+                      ) : (
+                        "Reset Password"
+                      )}
                     </button>
                   </div>
                 </div>
